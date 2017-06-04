@@ -3,5 +3,6 @@ body {
   margin: 0 auto;
   box-sizing: border-box;
   text-align: center;
-  margin: 2% !important;
+  margin: 3% !important;
+  background-color: #ebebeb;
 }
