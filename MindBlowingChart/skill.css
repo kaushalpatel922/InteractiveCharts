@@ -18,7 +18,7 @@ body {
   margin-top: 10px;
 }
 #skillmap .skills-wrapper {
-  margin-top: 10px;
+  margin: 10px;
   overflow: auto;
 }
 #skillmap .skills-sunburst {
