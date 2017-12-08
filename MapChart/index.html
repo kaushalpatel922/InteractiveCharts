@@ -6,7 +6,8 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Mapping with D3</title>
     <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
-    <script src=data/neighborhoods.json""></script>
+    <script src="neighborhoods.json"></script>
+    <script src="data/rodents.json"></script>
 </head>
 <body>
     <h1>hi</h1>
@@ -22,6 +23,25 @@
 
         var g = svg.append('g');
         
+        var albersProjection = d3.geoAlbers()
+            .scale(190000)
+            .rotate([71.057, 0])
+            .center([0,42.313])
+            .translate([width/2, height/2]);
+
+        var geoPath = d3.geoPath()
+            .projection(albersProjection);
+
+        g.selectAll("path")
+            .data(neighborhoods_json.features)
+            .enter()
+            .append("path")
+            .attr("fill","#ccc")
+            .attr("stroke", "#333")
+            .attr("d", geoPath);
+
+    
+
     </script>
     
 </body>
