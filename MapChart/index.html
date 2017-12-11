@@ -15,21 +15,25 @@
         h1, h3 {
             position: absolute;
             left: 15px;
-            font-size: 1.3em;
-            font-weight: 100;
+            font-size: 1.4em;
         }
         h3 {
-            top: 30px;
+            top: 35px;
             font-size: 1.1em;
+            font-weight: 100;
+
         }
         .hover {
             fill: yellow;
         }
         #sliderContainer {
-            text-align: center;
+            left: 240px;
             position: relative;
-            top: 600px;
+            top: 15px;
+            margin-bottom: 20px;
         }
+        
+        
     </style>
 </head>
 <body>
@@ -43,6 +47,12 @@
     <script>
         var width = 700;
         var height = 550;
+        var inputValue = null;
+        var month = ["January", "February", "March",
+            "April", "May", "June",
+            "July", "August", "September",
+            "October", "November", "December"
+        ];
 
         var svg = d3.select("body")
             .append('svg')
@@ -74,7 +84,7 @@
             .data(rodents_json.features)
             .enter()
             .append("path")
-            .attr("fill", "#900")
+            .attr("fill", initialDate)
             .attr("stroke", "#999")
             .attr("d", geoPath)
             .attr("class", "incident")
@@ -87,12 +97,7 @@
                 d3.select(this).attr("class", "incident");
             });
 
-        var inputValue = null;
-        var month = ["January", "February", "March",
-                     "April", "May", "June",
-                     "July", "August", "September",
-                     "October", "November", "December"
-                    ];
+
         
         d3.select("#timeslide").on("input", function() {
             update(+this.value);
@@ -117,6 +122,17 @@
             }
         }
 
+        //setting starting value to be first month - January
+        function initialDate(d, i) {
+            var d = new Date(d.properties.OPEN_DT);
+            var m = month[d.getMonth()];
+            if(m == "January") {
+                this.parentElement.appendChild(this);
+                return "red"
+            } else {
+                return "#999";
+            };
+        }
     </script>
 </body>
 </html>
