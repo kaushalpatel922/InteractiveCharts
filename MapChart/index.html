@@ -22,17 +22,24 @@
             top: 30px;
             font-size: 1.1em;
         }
-        .incident {
-            fill: yellowgreen;
-        }
         .hover {
             fill: yellow;
+        }
+        #sliderContainer {
+            text-align: center;
+            position: relative;
+            top: 600px;
         }
     </style>
 </head>
 <body>
     <h1>Reported Incidents</h1>
     <h3></h3>
+    <div id="sliderContainer">
+        <input id="timeslide" type="range" min="0" max="11" value="0" step="1">
+        <br>
+        <span id="range">January</span>
+    </div>
     <script>
         var width = 700;
         var height = 550;
@@ -80,6 +87,35 @@
                 d3.select(this).attr("class", "incident");
             });
 
+        var inputValue = null;
+        var month = ["January", "February", "March",
+                     "April", "May", "June",
+                     "July", "August", "September",
+                     "October", "November", "December"
+                    ];
+        
+        d3.select("#timeslide").on("input", function() {
+            update(+this.value);
+        });
+
+        function update(value) {
+            document.getElementById("range").innerHTML = month[value];
+            inputValue = month[value];
+            d3.selectAll(".incident")
+                .attr('fill', dateMatch);
+        }
+
+        // display the data by month - if current month - show in red;
+        function dateMatch (data, value) {
+            var d = new Date (data.properties.OPEN_DT);
+            var m = month[d.getMonth()];
+            if (inputValue == m) {
+                this.parentElement.appendChild(this);
+                return "red";
+            } else {
+                return "#999";
+            }
+        }
 
     </script>
 </body>
