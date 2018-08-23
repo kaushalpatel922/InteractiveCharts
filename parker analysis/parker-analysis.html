@@ -1,0 +1,281 @@
+
+<!doctype html>
+<html>
+
+<head>
+	<title>Line Chart with Custom Tooltips</title>
+	<script src="Chart.bundle.js"></script>
+	<script src="utils.js"></script>
+	<style>
+		canvas{
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+		#chartjs-tooltip {
+			opacity: 1;
+			position: absolute;
+			background: rgba(0, 0, 0, .7);
+			color: white;
+			border-radius: 3px;
+			-webkit-transition: all .1s ease;
+			transition: all .1s ease;
+			pointer-events: none;
+			-webkit-transform: translate(-50%, 0);
+			transform: translate(-50%, 0);
+		}
+
+		.chartjs-tooltip-key {
+			display: inline-block;
+			width: 10px;
+			height: 10px;
+			margin-right: 10px;
+		}
+	</style>
+</head>
+
+<body style="margin: 20px 0 100px 0;">
+	<h1 style="text-align: center; text-align: center; font-family: sans-serif; color: #525151; font-weight: normal;">Parker Solar Probe Launch Evaluations</h1>
+	<div id="canvas-holder1" style="width:75%; margin: 0 auto; margin-top: 3.5rem;">
+		<canvas id="chart-two"></canvas>
+	</div>
+	<div id="canvas-holder1" style="width:75%; margin: 0 auto; margin-top: 6rem;">
+		<canvas id="chart-three"></canvas>
+	</div>
+	<div id="canvas-holder1" style="width:75%; margin: 0 auto; margin-top: 6rem;">
+		<canvas id="chart"></canvas>
+	</div>
+	
+	<script>
+		Chart.defaults.global.pointHitDetectionRadius = 1;
+
+		var customTooltips = function(tooltip) {
+			// Tooltip Element
+			var tooltipEl = document.getElementById('chartjs-tooltip');
+
+			if (!tooltipEl) {
+				tooltipEl = document.createElement('div');
+				tooltipEl.id = 'chartjs-tooltip';
+				tooltipEl.innerHTML = '<table></table>';
+				this._chart.canvas.parentNode.appendChild(tooltipEl);
+			}
+
+			// Hide if no tooltip
+			if (tooltip.opacity === 0) {
+				tooltipEl.style.opacity = 0;
+				return;
+			}
+
+			// Set caret Position
+			tooltipEl.classList.remove('above', 'below', 'no-transform');
+			if (tooltip.yAlign) {
+				tooltipEl.classList.add(tooltip.yAlign);
+			} else {
+				tooltipEl.classList.add('no-transform');
+			}
+
+			function getBody(bodyItem) {
+				return bodyItem.lines;
+			}
+
+			// Set Text
+			if (tooltip.body) {
+				var titleLines = tooltip.title || [];
+				var bodyLines = tooltip.body.map(getBody);
+
+				var innerHtml = '<thead>';
+
+				titleLines.forEach(function(title) {
+					innerHtml += '<tr><th>' + title + '</th></tr>';
+				});
+				innerHtml += '</thead><tbody>';
+
+				bodyLines.forEach(function(body, i) {
+					var colors = tooltip.labelColors[i];
+					var style = 'background:' + colors.backgroundColor;
+					style += '; border-color:' + colors.borderColor;
+					style += '; border-width: 2px';
+					var span = '<span class="chartjs-tooltip-key" style="' + style + '"></span>';
+					innerHtml += '<tr><td>' + span + body + '</td></tr>';
+				});
+				innerHtml += '</tbody>';
+
+				var tableRoot = tooltipEl.querySelector('table');
+				tableRoot.innerHTML = innerHtml;
+			}
+
+			var positionY = this._chart.canvas.offsetTop;
+			var positionX = this._chart.canvas.offsetLeft;
+
+			// Display, position, and set styles for font
+			tooltipEl.style.opacity = 1;
+			tooltipEl.style.left = positionX + tooltip.caretX + 'px';
+			tooltipEl.style.top = positionY + tooltip.caretY + 'px';
+			tooltipEl.style.fontFamily = tooltip._bodyFontFamily;
+			tooltipEl.style.fontSize = tooltip.bodyFontSize + 'px';
+			tooltipEl.style.fontStyle = tooltip._bodyFontStyle;
+			tooltipEl.style.padding = tooltip.yPadding + 'px ' + tooltip.xPadding + 'px';
+		};
+
+		var lineChartData = {
+			labels: ['Fri AM', 'Fri PM', 'Sat PM', 'Sun PM', 'Mon 2PM', 'Mon 5PM'],
+			datasets: [{
+				label: 'Interesting Talk',
+				borderColor: window.chartColors.red,
+				pointBackgroundColor: window.chartColors.red,
+				fill: false,
+				data: [
+					8.1, 8.9, 8.9, 8.8, 8.6, 9.6
+				]
+			}, {
+				label: 'Kept my attention',
+				borderColor: window.chartColors.blue,
+				pointBackgroundColor: window.chartColors.blue,
+				fill: false,
+				data: [
+					7.2, 8.6, 9.9, 8.4, 8.9, 9.7
+				]
+			}, {
+				label: 'Interesting Images',
+				borderColor: window.chartColors.green,
+				pointBackgroundColor: window.chartColors.green,
+				fill: false,
+				data: [
+					7.0, 8.9, 9.4, 8.9, 8.4, 9.4
+				]
+			}, {
+				label: 'Learned new things - Sun',
+				borderColor: window.chartColors.orange,
+				pointBackgroundColor: window.chartColors.orange,
+				fill: false,
+				data: [
+					8.7,8.6,8.7,9.2,8.8,8.9
+				]
+			},{
+				label: 'Learned new things - NASA',
+				borderColor: window.chartColors.purple,
+				pointBackgroundColor: window.chartColors.purple,
+				fill: false,
+				data: [
+					8.6,8.9,9.0,7.8,9.0,8.8
+				]
+			}
+		]};
+
+		var lineChartDataTwo = {
+			labels: ['Fri AM', 'Fri PM', 'Sat PM', 'Sun PM', 'Mon 2PM', 'Mon 5PM'],
+			datasets: [{
+				label: 'Interesting Talk',
+				borderColor: window.chartColors.red,
+				pointBackgroundColor: window.chartColors.red,
+				fill: false,
+				data: [
+					13, 21, 8, 16, 10, 13
+				]
+			}, 
+		]};
+
+		var lineChartDataThree = {
+			labels: ['Fri AM', 'Fri PM', 'Sat PM', 'Sun PM', 'Mon 2PM', 'Mon 5PM'],
+			datasets: [{
+				label: 'Very Interesting',
+				borderColor: window.chartColors.red,
+				pointBackgroundColor: window.chartColors.red,
+				fill: false,
+				data: [
+					8,13,7,10,4,11
+				]
+			}, {
+				label: 'Interesting',
+				borderColor: window.chartColors.blue,
+				pointBackgroundColor: window.chartColors.blue,
+				fill: false,
+				data: [
+					2,5,0,2,6,2
+				]
+			}, {
+				label: 'Boring',
+				borderColor: window.chartColors.green,
+				pointBackgroundColor: window.chartColors.green,
+				fill: false,
+				data: [
+					1,0,0,0,0,0
+				]
+			}, {
+				label: 'Very Boring',
+				borderColor: window.chartColors.orange,
+				pointBackgroundColor: window.chartColors.orange,
+				fill: false,
+				data: [
+					0,0,0,0,0,0
+				]
+			}
+		]};
+
+		var chartEl = document.getElementById('chart');
+		var chartEll = document.getElementById('chart-two');
+		var chartElll = document.getElementById('chart-three');
+		
+		window.onload = function() {
+			
+			myLineTwo = new Chart(chartEll, {
+				type: 'line',
+				data: lineChartDataTwo,
+				options: {
+					title: {
+						display: true,
+						text: 'Surveys During Each Talk',
+						fontSize: 20
+					},
+					tooltips: {
+						enabled: false,
+						mode: 'index',
+						position: 'nearest',
+						custom: customTooltips
+					}
+				}
+			});
+
+			myLineThree = new Chart(chartElll, {
+				type: 'line',
+				data: lineChartDataThree,
+				options: {
+					title: {
+						display: true,
+						text: 'In general, I find Science',
+						fontSize: 20
+					},
+					tooltips: {
+						enabled: false,
+						mode: 'index',
+						position: 'nearest',
+						custom: customTooltips
+					}
+				}
+			});
+
+			myLine = new Chart(chartEl, {
+				type: 'line',
+				data: lineChartData,
+				options: {
+					title: {
+						display: true,
+						text: 'Talk Ratings on a scale of 1-10 = highest',
+						fontSize: 20
+					},
+					tooltips: {
+						enabled: false,
+						mode: 'index',
+						position: 'nearest',
+						custom: customTooltips
+					}
+				}
+			});
+			
+
+			
+		};
+	</script>
+</body>
+
+</html>
