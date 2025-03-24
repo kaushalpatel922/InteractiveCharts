@@ -13,3 +13,135 @@
     <label>Pessimistic %: <input type="text" id="pessimistic" placeholder="e.g., 5"></label><br>
     <button id="calculate">Calculate</button>
 </div>
+
+<div id="result"></div>
+<canvas id="roiChart" height="100"></canvas>
+
+<!-- JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+jQuery(document).ready(function($){
+    let chartInstance = null;
+
+    function formatNumberWithCommas(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    function cleanNumber(num) {
+        return num.replace(/,/g, "");
+    }
+
+    // Input formatting for numbers
+    $("#amount, #years, #rate, #optimistic, #pessimistic").on("input", function(){
+        let val = cleanNumber($(this).val());
+        val = val.replace(/\D/g, "");
+        if (val.length > 12) val = val.substring(0, 12);
+        $(this).val(formatNumberWithCommas(val));
+    });
+
+    $("#calculate").click(function(){
+        let P = parseFloat(cleanNumber($("#amount").val()));
+        let t = parseInt(cleanNumber($("#years").val()));
+        let n = parseInt($("#compound").val());
+        let baseRate = parseFloat(cleanNumber($("#rate").val())) / 100;
+        let optimisticRate = parseFloat(cleanNumber($("#optimistic").val())) / 100;
+        let pessimisticRate = parseFloat(cleanNumber($("#pessimistic").val())) / 100;
+
+        if (isNaN(P) || isNaN(t) || isNaN(baseRate) || isNaN(optimisticRate) || isNaN(pessimisticRate) || P <= 0 || t <= 0) {
+            $("#result").html("<span style='color: red;'>Please enter valid inputs!</span>");
+            return;
+        }
+
+        let labels = [];
+        let optimisticData = [];
+        let baseData = [];
+        let pessimisticData = [];
+        let totalOptimistic = [];
+        let totalBase = [];
+        let totalPessimistic = [];
+
+        for (let year = 1; year <= t; year++) {
+            labels.push(`Year ${year}`);
+
+            // Optimistic projection
+            let optAmount = P * Math.pow((1 + (optimisticRate / n)), (n * year));
+            optimisticData.push(optAmount - P);
+            totalOptimistic.push(optAmount);
+
+            // Base projection
+            let baseAmount = P * Math.pow((1 + (baseRate / n)), (n * year));
+            baseData.push(baseAmount - P);
+            totalBase.push(baseAmount);
+
+            // Pessimistic projection
+            let pessAmount = P * Math.pow((1 + (pessimisticRate / n)), (n * year));
+            pessimisticData.push(pessAmount - P);
+            totalPessimistic.push(pessAmount);
+        }
+
+        $("#result").html(`
+            <strong>Optimistic Future Value:</strong> $${formatNumberWithCommas(totalOptimistic[t - 1].toFixed(0))}<br>
+            <strong>Base Future Value:</strong> $${formatNumberWithCommas(totalBase[t - 1].toFixed(0))}<br>
+            <strong>Pessimistic Future Value:</strong> $${formatNumberWithCommas(totalPessimistic[t - 1].toFixed(0))}
+        `);
+
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+
+        let ctx = document.getElementById("roiChart").getContext("2d");
+        chartInstance = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: "Optimistic Growth",
+                        data: optimisticData,
+                        backgroundColor: "rgba(40, 167, 69, 0.6)"
+                    },
+                    {
+                        label: "Base Growth",
+                        data: baseData,
+                        backgroundColor: "rgba(0, 123, 255, 0.6)"
+                    },
+                    {
+                        label: "Pessimistic Growth",
+                        data: pessimisticData,
+                        backgroundColor: "rgba(220, 53, 69, 0.6)"
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, beginAtZero: true }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                let label = tooltipItem.dataset.label;
+                                let value = tooltipItem.raw;
+                                let idx = tooltipItem.dataIndex;
+                                let total = 0;
+
+                                if (label.includes("Optimistic")) total = totalOptimistic[idx];
+                                if (label.includes("Base")) total = totalBase[idx];
+                                if (label.includes("Pessimistic")) total = totalPessimistic[idx];
+
+                                return [
+                                    `${label}: $${formatNumberWithCommas(value.toFixed(2))}`,
+                                    `Total: $${formatNumberWithCommas(total.toFixed(2))}`
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+});
+</script>
